@@ -24,6 +24,7 @@ import com.mapbox.core.utils.MapboxUtils;
 import com.mapbox.geojson.Point;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -49,9 +50,9 @@ import retrofit2.Response;
  * </p>
  *
  * @see <a href="https://www.mapbox.com/android-docs/java-sdk/overview/directions/">Android
- * Directions documentation</a>
+ *   Directions documentation</a>
  * @see <a href="https://www.mapbox.com/api-documentation/navigation/#directions">Directions API
- * documentation</a>
+ *   documentation</a>
  * @since 1.0.0
  */
 @AutoValue
@@ -111,7 +112,9 @@ public abstract class MapboxDirections extends
       enableRefresh(),
       walkingSpeed(),
       walkwayBias(),
-      alleyBias()
+      alleyBias(),
+      FormatUtils.formatDateTimeToIso8601(arriveBy()),
+      FormatUtils.formatDateTimeToIso8601(departAt())
     );
   }
 
@@ -143,7 +146,9 @@ public abstract class MapboxDirections extends
       enableRefresh(),
       walkingSpeed(),
       walkwayBias(),
-      alleyBias()
+      alleyBias(),
+      FormatUtils.formatDateTimeToIso8601(arriveBy()),
+      FormatUtils.formatDateTimeToIso8601(departAt())
     );
   }
 
@@ -310,6 +315,12 @@ public abstract class MapboxDirections extends
 
   @Nullable
   abstract WalkingOptions walkingOptions();
+
+  @Nullable
+  abstract LocalDateTime arriveBy();
+
+  @Nullable
+  abstract LocalDateTime departAt();
 
   @Nullable
   Double walkingSpeed() {
@@ -552,7 +563,7 @@ public abstract class MapboxDirections extends
      *                 written in when returned
      * @return this builder for chaining options together
      * @see <a href="https://www.mapbox.com/api-documentation/navigation/#instructions-languages">Supported
-     * Languages</a>
+     *   Languages</a>
      * @since 2.2.0
      */
     public Builder language(@Nullable Locale language) {
@@ -586,7 +597,7 @@ public abstract class MapboxDirections extends
      *                    or null which will result in no annotations being used
      * @return this builder for chaining options together
      * @see <a href="https://www.mapbox.com/api-documentation/navigation/#route-leg-object">RouteLeg object
-     * documentation</a>
+     *   documentation</a>
      * @since 2.1.0
      * @deprecated use {@link #annotations(List)}
      */
@@ -618,7 +629,7 @@ public abstract class MapboxDirections extends
      * @param annotation string referencing one of the annotation direction criteria's.
      * @return this builder for chaining options together
      * @see <a href="https://www.mapbox.com/api-documentation/navigation/#route-leg-object">RouteLeg object
-     * documentation</a>
+     *   documentation</a>
      * @since 2.1.0
      */
     public Builder addAnnotation(@AnnotationCriteria @NonNull String annotation) {
@@ -667,11 +678,11 @@ public abstract class MapboxDirections extends
      * dictates the angle of approach. This option should always be used in conjunction with the
      * {@link #radiuses} parameter.
      *
-     * @param bearings  a list of list of doubles. Every list has two values:
-     *                  the first is an angle clockwise from true north between 0 and 360. The
-     *                  second is the range of degrees the angle can deviate by. We recommend
-     *                  a value of 45 degrees or 90 degrees for the range, as bearing measurements
-     *                  tend to be inaccurate.
+     * @param bearings a list of list of doubles. Every list has two values:
+     *                 the first is an angle clockwise from true north between 0 and 360. The
+     *                 second is the range of degrees the angle can deviate by. We recommend
+     *                 a value of 45 degrees or 90 degrees for the range, as bearing measurements
+     *                 tend to be inaccurate.
      * @return this builder for chaining options together
      */
     public Builder bearings(@NonNull List<List<Double>> bearings) {
@@ -1068,6 +1079,7 @@ public abstract class MapboxDirections extends
     /**
      * Use POST method to request data.
      * The default is to use GET.
+     *
      * @return this builder for chaining options together
      * @since 4.6.0
      */
@@ -1078,6 +1090,7 @@ public abstract class MapboxDirections extends
 
     /**
      * Use GET method to request data.
+     *
      * @return this builder for chaining options together
      * @since 4.6.0
      */
@@ -1097,6 +1110,41 @@ public abstract class MapboxDirections extends
 
     abstract WalkingOptions walkingOptions();
 
+    /**
+     * The desired arrival time, the local time at the route <b>destination</b>.
+     * The travel time returned in duration is a prediction for travel
+     * time based on historical travel data. The route is calculated in a time-dependent manner.
+     * <p>For example, a trip that takes two hours will consider changing historic traffic
+     * conditions across the two-hour window.
+     * <p>The route takes timed turn restrictions and conditional access
+     * restrictions into account based on the requested arrival time.
+     *
+     * @param arriveBy arrive {@link LocalDateTime}
+     * @return this builder for chaining options together
+     */
+    public abstract Builder arriveBy(@Nullable LocalDateTime arriveBy);
+
+    @Nullable
+    abstract LocalDateTime arriveBy();
+
+    /**
+     * The departure time, the local time at the route <b>origin</b>.
+     * The travel time returned in duration is a prediction for travel time based
+     * on historical travel data. The route is calculated in a time-dependent manner.
+     * <p>For example, a trip that takes two hours will consider changing historic traffic
+     * conditions across the two-hour window, instead of only at the specified
+     * {@link #departAt(LocalDateTime)} time.
+     * <p>The route takes timed turn restrictions and conditional access restrictions into account
+     * based on the requested departure time.
+     *
+     * @param departAt departure {@link LocalDateTime}
+     * @return this builder for chaining options together
+     */
+    public abstract Builder departAt(@Nullable LocalDateTime departAt);
+
+    @Nullable
+    abstract LocalDateTime departAt();
+
     abstract Builder usePostMethod(@NonNull Boolean usePost);
 
     abstract Boolean usePostMethod();
@@ -1105,8 +1153,8 @@ public abstract class MapboxDirections extends
 
     /**
      * This uses the provided parameters set using the {@link Builder} and first checks that all
-     * values are valid, formats the values as strings for easier consumption by the API, and lastly
-     * creates a new {@link MapboxDirections} object with the values provided.
+     * values are valid, formats the values as strings for easier consumption by the API, and
+     * lastly creates a new {@link MapboxDirections} object with the values provided.
      *
      * @return a new instance of Mapbox Directions
      * @since 2.1.0

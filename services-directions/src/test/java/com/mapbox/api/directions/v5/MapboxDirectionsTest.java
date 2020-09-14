@@ -8,16 +8,16 @@ import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
 import com.mapbox.api.directions.v5.models.LegAnnotation;
 import com.mapbox.api.directions.v5.models.RouteOptions;
+import com.mapbox.api.directions.v5.utils.FormatUtils;
 import com.mapbox.api.directions.v5.utils.ParseUtils;
 import com.mapbox.core.TestUtils;
 import com.mapbox.core.exceptions.ServicesException;
 import com.mapbox.geojson.Point;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Random;
+import java.time.LocalDateTime;
+import java.time.Month;
+import java.util.*;
+
 import okhttp3.Call;
 import okhttp3.EventListener;
 import okhttp3.HttpUrl;
@@ -228,6 +228,40 @@ public class MapboxDirectionsTest extends TestUtils {
       .walkingOptions(WalkingOptions.builder().alleyBias(1d).build())
       .build();
     assertTrue(directions.cloneCall().request().url().toString().contains("alley_bias=1.0"));
+  }
+
+  @Test
+  public void build_arrivedByOption(){
+    LocalDateTime arriveBy = LocalDateTime.of(2020, Month.SEPTEMBER, 22, 9, 47);
+
+    MapboxDirections directions = MapboxDirections.builder()
+      .destination(Point.fromLngLat(13.4930, 9.958))
+      .origin(Point.fromLngLat(1.234, 2.345))
+      .accessToken(ACCESS_TOKEN)
+      .arriveBy(arriveBy)
+      .build();
+
+    assertEquals(
+            directions.cloneCall().request().url().queryParameter("arrive_by"),
+            FormatUtils.formatDateTimeToIso8601(arriveBy)
+    );
+  }
+
+  @Test
+  public void build_departAtOption(){
+    LocalDateTime departAt = LocalDateTime.of(2020, Month.SEPTEMBER, 22, 9, 48);
+
+    MapboxDirections directions = MapboxDirections.builder()
+      .destination(Point.fromLngLat(13.4930, 9.958))
+      .origin(Point.fromLngLat(1.234, 2.345))
+      .accessToken(ACCESS_TOKEN)
+      .departAt(departAt)
+      .build();
+
+    assertEquals(
+            directions.cloneCall().request().url().queryParameter("depart_at"),
+            FormatUtils.formatDateTimeToIso8601(departAt)
+    );
   }
 
   @Test

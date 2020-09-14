@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.SerializedName;
+import com.mapbox.api.directions.v5.LocalDateTimeAdapter;
 import com.mapbox.api.directions.v5.DirectionsAdapterFactory;
 import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.api.directions.v5.WalkingOptions;
@@ -15,6 +16,9 @@ import com.mapbox.api.directions.v5.utils.FormatUtils;
 import com.mapbox.api.directions.v5.utils.ParseUtils;
 import com.mapbox.geojson.Point;
 import com.mapbox.geojson.PointAsCoordinatesTypeAdapter;
+
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -73,7 +77,7 @@ public abstract class RouteOptions extends DirectionsJsonObject {
    * <tt>MapboxDirections</tt> requesting object doesn't specifically set a profile.
    *
    * @return string value representing the profile defined in
-   *         {@link DirectionsCriteria.ProfileCriteria}
+   *   {@link DirectionsCriteria.ProfileCriteria}
    * @since 3.0.0
    */
   @NonNull
@@ -280,16 +284,16 @@ public abstract class RouteOptions extends DirectionsJsonObject {
   /**
    * Exclude certain road types from routing. The default is to not exclude anything from the
    * profile selected. The following exclude flags are available for each profile:
-   *
+   * <p>
    * {@link DirectionsCriteria#PROFILE_DRIVING}: One of {@link DirectionsCriteria#EXCLUDE_TOLL},
    * {@link DirectionsCriteria#EXCLUDE_MOTORWAY}, or {@link DirectionsCriteria#EXCLUDE_FERRY}.
-   *
+   * <p>
    * {@link DirectionsCriteria#PROFILE_DRIVING_TRAFFIC}: One of
    * {@link DirectionsCriteria#EXCLUDE_TOLL}, {@link DirectionsCriteria#EXCLUDE_MOTORWAY}, or
    * {@link DirectionsCriteria#EXCLUDE_FERRY}.
-   *
+   * <p>
    * {@link DirectionsCriteria#PROFILE_WALKING}: No excludes supported
-   *
+   * <p>
    * {@link DirectionsCriteria#PROFILE_CYCLING}: {@link DirectionsCriteria#EXCLUDE_FERRY}
    *
    * @return a string matching one of the {@link DirectionsCriteria.ExcludeCriteria} exclusions
@@ -431,7 +435,8 @@ public abstract class RouteOptions extends DirectionsJsonObject {
    * coordinates. The first value in the list corresponds to the route origin, not the first
    * destination.
    * Must be used in conjunction with {@link RouteOptions#steps()} = true.
-   * @return  a string representing names for each waypoint
+   *
+   * @return a string representing names for each waypoint
    * @since 3.3.0
    */
   @SerializedName("waypoint_names")
@@ -447,7 +452,7 @@ public abstract class RouteOptions extends DirectionsJsonObject {
    * destination.
    * Must be used in conjunction with {@link RouteOptions#steps()} = true.
    *
-   * @return  a list of strings representing names for each waypoint
+   * @return a list of strings representing names for each waypoint
    */
   @Nullable
   public List<String> waypointNamesList() {
@@ -462,7 +467,8 @@ public abstract class RouteOptions extends DirectionsJsonObject {
    * The maneuver.modifier, banner and voice instructions will be updated with the computed
    * side of street. The number of waypoint targets must be the same as the number of coordinates.
    * Must be used with {@link RouteOptions#steps()} = true.
-   * @return  a list of Points representing coordinate pairs for drop-off locations
+   *
+   * @return a list of Points representing coordinate pairs for drop-off locations
    * @since 4.3.0
    */
   @SerializedName("waypoint_targets")
@@ -477,7 +483,8 @@ public abstract class RouteOptions extends DirectionsJsonObject {
    * The maneuver.modifier, banner and voice instructions will be updated with the computed
    * side of street. The number of waypoint targets must be the same as the number of coordinates.
    * Must be used with {@link RouteOptions#steps()} = true.
-   * @return  a list of Points representing coordinate pairs for drop-off locations
+   *
+   * @return a list of Points representing coordinate pairs for drop-off locations
    */
   @Nullable
   public List<Point> waypointTargetsList() {
@@ -492,6 +499,32 @@ public abstract class RouteOptions extends DirectionsJsonObject {
    */
   @Nullable
   public abstract WalkingOptions walkingOptions();
+
+  /**
+   * The departure time, the local time at the route <b>origin</b>.
+   * The travel time returned in duration is a prediction for travel time based
+   * on historical travel data. The route is calculated in a time-dependent manner.
+   * <p>For example, a trip that takes two hours will consider changing historic traffic conditions
+   * across the two-hour window, instead of only at the specified {@link #departAt()} time.
+   * <p>The route takes timed turn restrictions and conditional access restrictions into account
+   * based on the requested departure time.
+   */
+  @SerializedName("depart_at")
+  @Nullable
+  public abstract LocalDateTime departAt();
+
+  /**
+   * The desired arrival time, the local time at the route <b>destination</b>.
+   * The travel time returned in duration is a prediction for travel
+   * time based on historical travel data. The route is calculated in a time-dependent manner.
+   * <p>For example, a trip that takes two hours will consider changing historic traffic conditions
+   * across the two-hour window.
+   * <p>The route takes timed turn restrictions and conditional access
+   * restrictions into account based on the requested arrival time.
+   */
+  @SerializedName("arrive_by")
+  @Nullable
+  public abstract LocalDateTime arriveBy();
 
   /**
    * Gson type adapter for parsing Gson to this class.
@@ -518,6 +551,7 @@ public abstract class RouteOptions extends DirectionsJsonObject {
     gson.registerTypeAdapterFactory(DirectionsAdapterFactory.create());
     gson.registerTypeAdapter(Point.class, new PointAsCoordinatesTypeAdapter());
     gson.registerTypeAdapterFactory(WalkingOptionsAdapterFactory.create());
+    gson.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter());
     return gson.create().fromJson(json, RouteOptions.class);
   }
 
@@ -721,7 +755,7 @@ public abstract class RouteOptions extends DirectionsJsonObject {
      * @since 3.1.0
      */
     public abstract Builder geometries(
-        @NonNull @DirectionsCriteria.GeometriesCriteria String geometries);
+      @NonNull @DirectionsCriteria.GeometriesCriteria String geometries);
 
     /**
      * Displays the requested type of overview geometry. Can be
@@ -776,7 +810,7 @@ public abstract class RouteOptions extends DirectionsJsonObject {
      * {@link DirectionsCriteria#ANNOTATION_SPEED}
      * {@link DirectionsCriteria#ANNOTATION_CONGESTION}
      * {@link DirectionsCriteria#ANNOTATION_MAXSPEED}
-     *
+     * <p>
      * See the {@link RouteLeg} object for more details on what is included with
      * annotations.
      * Must be used in conjunction with overview=full.
@@ -848,16 +882,16 @@ public abstract class RouteOptions extends DirectionsJsonObject {
     /**
      * Exclude certain road types from routing. The default is to not exclude anything from the
      * profile selected. The following exclude flags are available for each profile:
-     *
+     * <p>
      * {@link DirectionsCriteria#PROFILE_DRIVING}: One of {@link DirectionsCriteria#EXCLUDE_TOLL},
      * {@link DirectionsCriteria#EXCLUDE_MOTORWAY}, or {@link DirectionsCriteria#EXCLUDE_FERRY}.
-     *
+     * <p>
      * {@link DirectionsCriteria#PROFILE_DRIVING_TRAFFIC}: One of
      * {@link DirectionsCriteria#EXCLUDE_TOLL}, {@link DirectionsCriteria#EXCLUDE_MOTORWAY}, or
      * {@link DirectionsCriteria#EXCLUDE_FERRY}.
-     *
+     * <p>
      * {@link DirectionsCriteria#PROFILE_WALKING}: No excludes supported
-     *
+     * <p>
      * {@link DirectionsCriteria#PROFILE_CYCLING}: {@link DirectionsCriteria#EXCLUDE_FERRY}
      *
      * @param exclude a string matching one of the {@link DirectionsCriteria.ExcludeCriteria}
@@ -1028,6 +1062,35 @@ public abstract class RouteOptions extends DirectionsJsonObject {
      * @since 4.8.0
      */
     public abstract Builder walkingOptions(@NonNull WalkingOptions walkingOptions);
+
+    /**
+     * The departure time, the local time at the route <b>origin</b>.
+     * The travel time returned in duration is a prediction for travel time based
+     * on historical travel data. The route is calculated in a time-dependent manner.
+     * <p>For example, a trip that takes two hours will consider changing historic traffic
+     * conditions across the two-hour window, instead of only at the specified
+     * {@link #departAt(LocalDateTime)} time.
+     * <p>The route takes timed turn restrictions and conditional access restrictions into account
+     * based on the requested departure time.
+     *
+     * @param departAt departure {@link Date}
+     * @return this builder for chaining options together
+     */
+    public abstract Builder departAt(@Nullable LocalDateTime departAt);
+
+    /**
+     * The desired arrival time, the local time at the route <b>destination</b>.
+     * The travel time returned in duration is a prediction for travel
+     * time based on historical travel data. The route is calculated in a time-dependent manner.
+     * <p>For example, a trip that takes two hours will consider changing historic traffic
+     * conditions across the two-hour window.
+     * <p>The route takes timed turn restrictions and conditional access
+     * restrictions into account based on the requested arrival time.
+     *
+     * @param arriveBy arrive {@link Date}
+     * @return this builder for chaining options together
+     */
+    public abstract Builder arriveBy(@Nullable LocalDateTime arriveBy);
 
     /**
      * Builds a new instance of the {@link RouteOptions} object.
