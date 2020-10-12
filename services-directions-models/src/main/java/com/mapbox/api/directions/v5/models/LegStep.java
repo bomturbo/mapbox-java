@@ -3,6 +3,7 @@ package com.mapbox.api.directions.v5.models;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import androidx.annotation.StringDef;
 import com.google.auto.value.AutoValue;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -10,6 +11,8 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.SerializedName;
 import com.mapbox.api.directions.v5.DirectionsAdapterFactory;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 
 /**
@@ -19,6 +22,27 @@ import java.util.List;
  */
 @AutoValue
 public abstract class LegStep extends DirectionsJsonObject {
+
+  /**
+   * {@link LegStep.SpeedLimitSign} accident.
+   */
+  public static final String MUTCD = "mutcd";
+
+  /**
+   * {@link LegStep.SpeedLimitSign} congestion.
+   */
+  public static final String VIENNA = "vienna";
+
+  /**
+   * Speed limit sign.
+   */
+  @Retention(RetentionPolicy.SOURCE)
+  @StringDef({
+    MUTCD,
+    VIENNA
+  })
+  public @interface SpeedLimitSign {
+  }
 
   /**
    * Create a new instance of this class by using the {@link Builder} class.
@@ -66,6 +90,23 @@ public abstract class LegStep extends DirectionsJsonObject {
    */
   @Nullable
   public abstract List<Incident> incidents();
+
+  /**
+   * Speed limit unit as per the locale.
+   *
+   * @return unit of the speed limit
+   */
+  @Nullable
+  public abstract String speedLimitUnit();
+
+  /**
+   * Speed limit sign type.
+   *
+   * @see LegStep.SpeedLimitSign
+   */
+  @Nullable
+  @LegStep.SpeedLimitSign
+  public abstract String speedLimitSign();
 
   /**
    * Gives the geometry of the leg step.
@@ -303,6 +344,23 @@ public abstract class LegStep extends DirectionsJsonObject {
      * @return this builder for chaining options together
      */
     public abstract Builder incidents(@Nullable List<Incident> incidents);
+
+    /**
+     * Speed limit unit as per the locale.
+     *
+     * @param speedLimitUnit speed limit unit
+     * @return this builder for chaining options together
+     */
+    public abstract Builder speedLimitUnit(@Nullable String speedLimitUnit);
+
+    /**
+     * Speed limit sign type.
+     *
+     * @param speedLimitSign speed limit sign
+     * @return this builder for chaining options together
+     * @see SpeedLimitSign
+     */
+    public abstract Builder speedLimitSign(@Nullable @SpeedLimitSign String speedLimitSign);
 
     /**
      * Gives the geometry of the leg step.
